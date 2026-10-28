@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starbooks Art Café — Bienvenue au Café Parisien</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lavender: {
+                            50: '#fbf8ff',
+                            100: '#f4edff',
+                            200: '#e9dcff',
+                            300: '#d7c1ff',
+                            400: '#be99ff',
+                            500: '#a26bfe',
+                            600: '#8943f2',
+                            700: '#732dd4',
+                            800: '#6028ac',
+                            900: '#50238a',
+                            950: '#330f63',
+                        },
+                        parchment: '#fcfaf6',
+                        gold: '#c5a059',
+                        frenchViolet: '#4a2e6b',
+                    },
+                    fontFamily: {
+                        script: ['Great Vibes', 'cursive'],
+                        serif: ['Cormorant Garamond', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .eiffel-watermark {
+            background-color: #fcfaf6;
+            background-image: radial-gradient(#d7c1ff 0.6px, transparent 0.6px), radial-gradient(#d7c1ff 0.6px, #fcfaf6 0.6px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(215, 193, 255, 0.4);
+            box-shadow: 0 10px 30px -5px rgba(74, 46, 107, 0.08);
+        }
+
+        .glass-hero {
+            background: linear-gradient(135deg, rgba(244, 237, 255, 0.95) 0%, rgba(252, 250, 246, 0.98) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(190, 153, 255, 0.3);
+        }
+
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-parchment text-slate-800 font-sans min-h-screen flex flex-col relative eiffel-watermark selection:bg-lavender-200 selection:text-frenchViolet"
+      x-data="cafeApp()" x-init="initApp()">
+
+    <!-- BARRA DE AVISO PRE-EVENTO (Si se abre antes del 30 de Octubre) -->
+    <div x-show="isBeforeEvent" class="bg-frenchViolet text-lavender-100 py-2.5 px-4 sticky top-0 z-50 shadow-md border-b border-lavender-400/30 text-center text-xs sm:text-sm flex items-center justify-center gap-2">
+        <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
+        <span>Vista previa oficial — El evento se realiza el <strong>Viernes 30 de Octubre</strong>.</span>
+        <button @click="toggleSimulationMode()" class="underline font-bold ml-2 text-lavender-200 hover:text-white">
+            <span x-text="simulatingLive ? 'Desactivar Modo Prueba' : 'Probar Reloj en Vivo'"></span>
+        </button>
+    </div>
+
+    <!-- HEADER / HERO PRINCIPAL EN ESTILO CAFÉ PARISIEN -->
+    <header class="relative pt-12 pb-10 px-4 text-center overflow-hidden border-b border-lavender-200/80 glass-hero shadow-sm">
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="flex justify-center items-center gap-3 text-lavender-700 mb-2">
+                <span class="h-[1px] w-14 bg-lavender-300"></span>
+                <i data-lucide="flower-2" class="w-5 h-5 text-lavender-600"></i>
+                <span class="font-script text-3xl text-frenchViolet">Bienvenue au</span>
+                <i data-lucide="flower-2" class="w-5 h-5 text-lavender-600"></i>
+                <span class="h-[1px] w-14 bg-lavender-300"></span>
+            </div>
+
+            <h1 class="font-script text-6xl sm:text-8xl font-bold text-frenchViolet drop-shadow-sm tracking-wide mb-1">
+                Café Parisien
+            </h1>
+            <p class="font-serif italic text-xl sm:text-2xl text-lavender-900 font-semibold tracking-wider mb-2">
+                STARBOOKS ART CAFÉ — VIERNES 30 DE OCTUBRE
+            </p>
+            <p class="text-xs sm:text-sm text-slate-600 font-serif max-w-md mx-auto italic">
+                Un rincón para disfrutar, crear y compartir
+            </p>
+
+            <!-- RELOJ DIGITAL (Muestra cuenta regresiva o hora real según corresponda) -->
+            <div class="mt-8 mb-2 inline-block">
+                <div class="glass-card px-8 py-5 rounded-3xl shadow-xl border-2 border-lavender-300 relative">
+                    <div class="absolute -top-3.5 left-1/2 transform -translate-x-1/2 bg-frenchViolet text-lavender-100 text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
+                        <span x-text="isBeforeEvent && !simulatingLive ? 'Cuenta Regresiva' : 'Reloj en Vivo'"></span>
+                    </div>
+                    
+                    <template x-if="isBeforeEvent && !simulatingLive">
+                        <div>
+                            <div class="font-mono text-3xl sm:text-5xl font-extrabold text-frenchViolet tracking-tight py-2" x-text="countdownText">
+                                Calculando...
+                            </div>
+                            <div class="text-xs text-lavender-800 font-serif italic mt-1">
+                                Para el gran opening (Viernes 30 de Octubre a las 18:00 hs)
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="!isBeforeEvent || simulatingLive">
+                        <div>
+                            <div class="font-mono text-5xl sm:text-7xl font-extrabold text-frenchViolet tracking-tight flex items-center justify-center gap-1">
+                                <span x-text="currentTimeFormatted">18:00</span>
+                                <span class="text-xs text-lavender-600 font-sans font-normal self-end mb-2 sm:mb-3">hs</span>
+                            </div>
+                            <div class="text-xs text-lavender-800 font-serif italic mt-1">
+                                Cronograma oficial en tiempo real
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-8 space-y-10">
+
+        <!-- TARJETA DESTACADA "EN VIVO AHORA" Y "PRÓXIMAMENTE" -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- EN VIVO AHORA -->
+            <div class="glass-card rounded-2xl p-6 shadow-xl border-2 relative overflow-hidden transition-all duration-500"
+                 :class="currentActivity ? 'border-lavender-500 ring-4 ring-lavender-200/60 bg-gradient-to-br from-white via-lavender-50/60 to-white' : 'border-slate-200 opacity-90'">
+                
+                <div class="flex items-center justify-between mb-4">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-red-700 border border-red-200 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                        <span class="w-2 h-2 rounded-full bg-red-600 -ml-3.5"></span>
+                        En Vivo Ahora
+                    </span>
+                    <span class="text-xs font-serif italic font-semibold text-slate-600" x-text="currentActivity ? currentActivity.time + ' hs' : ''"></span>
+                </div>
+
+                <template x-if="currentActivity">
+                    <div class="space-y-3">
+                        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-frenchViolet leading-tight" x-text="currentActivity.title"></h2>
+                        
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="bg-lavender-100 text-frenchViolet px-3 py-1 rounded-md font-semibold flex items-center gap-1.5 shadow-sm">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-lavender-600"></i>
+                                <span x-text="currentActivity.space"></span>
+                            </span>
+                            <span class="bg-amber-50 text-amber-800 px-3 py-1 rounded-md font-semibold flex items-center gap-1.5 border border-amber-200/60 shadow-sm" x-show="currentActivity.duration">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i>
+                                <span x-text="currentActivity.duration"></span>
+                            </span>
+                        </div>
+
+                        <p class="text-slate-600 text-sm italic font-serif pt-1" x-text="currentActivity.obs"></p>
+
+                        <div class="pt-2 text-xs text-slate-500 flex items-center gap-1">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+                            <span>A cargo de: </span>
+                            <strong x-text="currentActivity.resp" class="text-slate-700"></strong>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="!currentActivity">
+                    <div class="py-10 text-center text-slate-500 space-y-3">
+                        <i data-lucide="coffee" class="w-10 h-10 mx-auto text-lavender-400"></i>
+                        <p class="font-serif text-xl text-frenchViolet font-semibold" x-text="isBeforeEvent && !simulatingLive ? 'El evento comienza el Viernes 30 a las 18:00 hs' : 'Fuera del horario principal del escenario'"></p>
+                        <p class="text-xs text-slate-500">Las muestras en las Aulas y el Buffet estarán abiertas de 18:00 a 20:30 hs.</p>
+                    </div>
+                </template>
+            </div>
+
+            <!-- A CONTINUACIÓN -->
+            <div class="glass-card rounded-2xl p-6 shadow-xl border border-lavender-200 relative overflow-hidden bg-white/95">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-lavender-100 text-frenchViolet border border-lavender-200 shadow-sm">
+                        <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-lavender-600"></i>
+                        A Continuación
+                    </span>
+                    <span class="text-xs font-serif italic font-semibold text-slate-600" x-text="nextActivity ? nextActivity.time + ' hs' : ''"></span>
+                </div>
+
+                <template x-if="nextActivity">
+                    <div class="space-y-3">
+                        <h2 class="font-serif text-2xl font-bold text-slate-800 leading-tight" x-text="nextActivity.title"></h2>
+                        
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-md font-semibold flex items-center gap-1.5 shadow-sm">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-500"></i>
+                                <span x-text="nextActivity.space"></span>
+                            </span>
+                            <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-md font-semibold flex items-center gap-1.5 shadow-sm" x-show="nextActivity.duration">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-500"></i>
+                                <span x-text="nextActivity.duration"></span>
+                            </span>
+                        </div>
+
+                        <p class="text-slate-600 text-sm italic font-serif pt-1" x-text="nextActivity.obs"></p>
+
+                        <div class="pt-2 text-xs text-slate-500 flex items-center gap-1">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+                            <span>A cargo de: </span>
+                            <strong x-text="nextActivity.resp" class="text-slate-700"></strong>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="!nextActivity">
+                    <div class="py-10 text-center text-slate-500 space-y-3">
+                        <i data-lucide="sparkles" class="w-10 h-10 mx-auto text-amber-400"></i>
+                        <p class="font-serif text-xl text-frenchViolet font-semibold">¡Próximamente!</p>
+                        <p class="text-xs text-slate-500">Explora el cronograma completo debajo para conocer todas las actividades.</p>
+                    </div>
+                </template>
+            </div>
+
+        </section>
+
+        <!-- NAVEGACIÓN DE PESTAÑAS Y FILTROS -->
+        <section class="space-y-6 pt-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-lavender-200 pb-4">
+                <div class="flex gap-2 p-1.5 bg-lavender-100/80 rounded-2xl w-full sm:w-auto shadow-inner">
+                    <button @click="activeTab = 'escenario'" 
+                            class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                            :class="activeTab === 'escenario' ? 'bg-frenchViolet text-white shadow-md' : 'text-frenchViolet hover:bg-lavender-200/60'">
+                        <i data-lucide="mic" class="w-4 h-4"></i>
+                        <span>Escenario y Patio (Por Hora)</span>
+                    </button>
+
+                    <button @click="activeTab = 'aulas'" 
+                            class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                            :class="activeTab === 'aulas' ? 'bg-frenchViolet text-white shadow-md' : 'text-frenchViolet hover:bg-lavender-200/60'">
+                        <i data-lucide="door-open" class="w-4 h-4"></i>
+                        <span>Muestras Fijas en Aulas (18:00 a 20:30)</span>
+                    </button>
+                </div>
+
+                <div class="relative w-full sm:w-72">
+                    <input type="text" x-model="searchQuery" placeholder="Buscar actividad, obra, aula..." 
+                           class="w-full pl-10 pr-4 py-2.5 bg-white border border-lavender-200 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-lavender-400 shadow-sm">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                </div>
+            </div>
+
+            <!-- TAB 1: CRONOGRAMA DE ESCENARIO Y PATIO -->
+            <div x-show="activeTab === 'escenario'" x-transition class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-serif text-2xl font-bold text-frenchViolet flex items-center gap-2">
+                        <span>Programa del Escenario Principal</span>
+                        <span class="text-xs font-sans font-normal text-slate-600 bg-lavender-100 px-3 py-1 rounded-full border border-lavender-200">Patio & SUM</span>
+                    </h3>
+                </div>
+
+                <div class="space-y-3.5">
+                    <template x-for="item in filteredEscenario" :key="item.id">
+                        <div class="glass-card rounded-2xl p-5 sm:p-6 transition-all duration-300 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:shadow-md"
+                             :class="{
+                                'border-lavender-500 bg-gradient-to-r from-lavender-50/90 via-white to-white shadow-md ring-2 ring-lavender-300': isCurrent(item),
+                                'border-slate-200/90 hover:border-lavender-300': !isCurrent(item),
+                                'opacity-60 bg-slate-50/50': isPast(item)
+                             }">
+                            
+                            <div class="flex items-center sm:flex-col sm:items-start gap-3 sm:gap-1.5 min-w-[100px]">
+                                <span class="font-mono text-xl font-extrabold text-frenchViolet" x-text="item.time + ' hs'"></span>
+                                
+                                <template x-if="isCurrent(item)">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider bg-red-600 text-white px-2.5 py-0.5 rounded-full shadow-sm animate-pulse">
+                                        Ahora
+                                    </span>
+                                </template>
+                                <template x-if="isPast(item)">
+                                    <span class="text-[10px] font-medium text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
+                                        Programado
+                                    </span>
+                                </template>
+                            </div>
+
+                            <div class="flex-grow space-y-1.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <h4 class="font-serif text-xl sm:text-2xl font-bold text-slate-900" x-text="item.title"></h4>
+                                    <button @click="toggleFavorite(item.id)" class="text-slate-300 hover:text-amber-400 transition transform hover:scale-110 p-1">
+                                        <i data-lucide="star" class="w-5 h-5" :class="isFavorite(item.id) ? 'fill-amber-400 text-amber-400' : ''"></i>
+                                    </button>
+                                </div>
+                                
+                                <p class="text-xs sm:text-sm text-slate-600 font-serif italic" x-text="item.obs"></p>
+
+                                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
+                                    <span class="flex items-center gap-1 font-semibold text-lavender-900 bg-lavender-100/80 px-2.5 py-1 rounded-md shadow-sm">
+                                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-lavender-600"></i>
+                                        <span x-text="item.space"></span>
+                                    </span>
+                                    <span class="flex items-center gap-1" x-show="item.resp">
+                                        <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+                                        <span x-text="item.resp"></span>
+                                    </span>
+                                    <span class="flex items-center gap-1 text-slate-500 font-medium" x-show="item.duration">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i>
+                                        <span x-text="item.duration"></span>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- TAB 2: MUESTRAS PERMANENTES -->
+            <div x-show="activeTab === 'aulas'" x-transition class="space-y-4">
+                <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 text-amber-950 text-xs sm:text-sm shadow-sm">
+                    <i data-lucide="info" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <strong class="font-bold text-amber-900">Horario Continuo (18:00 a 20:30 hs):</strong>
+                        <span>Muestras y experiencias disponibles durante toda la jornada en simultáneo con las presentaciones del escenario.</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <template x-for="item in filteredAulas" :key="item.id">
+                        <div class="glass-card rounded-2xl p-5 sm:p-6 border border-lavender-200 hover:border-lavender-400 hover:shadow-lg transition-all flex flex-col justify-between space-y-4">
+                            <div class="space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="inline-block bg-frenchViolet text-lavender-100 font-bold text-xs px-3 py-1 rounded-lg shadow-sm" x-text="item.space"></span>
+                                    <button @click="toggleFavorite(item.id)" class="text-slate-300 hover:text-amber-400 transition transform hover:scale-110 p-1">
+                                        <i data-lucide="star" class="w-5 h-5" :class="isFavorite(item.id) ? 'fill-amber-400 text-amber-400' : ''"></i>
+                                    </button>
+                                </div>
+                                <h4 class="font-serif text-2xl font-bold text-frenchViolet" x-text="item.title"></h4>
+                                <p class="text-xs sm:text-sm text-slate-600 font-serif italic" x-text="item.obs"></p>
+                            </div>
+
+                            <div class="pt-3 border-t border-lavender-100 text-xs text-slate-600 flex items-center gap-2">
+                                <i data-lucide="user-check" class="w-4 h-4 text-lavender-600 flex-shrink-0"></i>
+                                <span>Responsable: </span>
+                                <strong class="text-slate-800 font-medium" x-text="item.resp"></strong>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER ESTILO PARIS CON MARCA DE AGUA DISCRETA -->
+    <footer class="mt-auto border-t border-lavender-200 bg-white/60 py-10 px-4 text-center text-xs text-slate-500 font-serif shadow-inner">
+        <div class="max-w-4xl mx-auto space-y-3">
+            <p class="font-script text-3xl text-frenchViolet font-bold">Starbooks Art Café</p>
+            <p class="italic text-sm text-slate-600">Área de Lenguajes Expresivos — Muestra Anual</p>
+            <p class="text-xs text-slate-400 pt-2">Viernes 30 de Octubre • Temática Café Parisien</p>
+            
+            <div class="pt-4 border-t border-lavender-100 max-w-xs mx-auto text-[11px] text-slate-400 tracking-wider">
+                Desarrollado por <span class="font-semibold text-frenchViolet">Mateo Vallejos</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGICA SCRIPT ALPINE.JS (CON DETECCIÓN PRE-EVENTO Y CUENTA REGRESIVA) -->
+    <script>
+        function cafeApp() {
+            return {
+                activeTab: 'escenario',
+                searchQuery: '',
+                favorites: JSON.parse(localStorage.getItem('starbooks_favs') || '[]'),
+                
+                currentMinutes: 0,
+                isBeforeEvent: true,
+                simulatingLive: false,
+                countdownText: '',
+                clockInterval: null,
+
+                escenarioData: [
+                    { id: 1, time: "18:00", minStart: 1080, minEnd: 1090, title: "Recepción y Bienvenida Oficial", space: "Patio al aire libre", resp: "1º y 2º Año + Kande Venegas y Pauli Videla (5º Año)", duration: "10 min", obs: "Los susurradores reciben a Todos." },
+                    { id: 2, time: "18:10", minStart: 1090, minEnd: 1095, title: "Danza", space: "Patio al aire libre", resp: "2º Año", duration: "5 min", obs: "Coreografía de apertura del café." },
+                    { id: 3, time: "18:15", minStart: 1095, minEnd: 1105, title: "Entrevistas a los Autores (Parte 1)", space: "Patio al aire libre", resp: "Graciela Martínez c/ Pau Elwart", duration: "10 min", obs: "Presentación y primera parte de la entrevista." },
+                    { id: 4, time: "18:25", minStart: 1105, minEnd: 1110, title: "Baile Solista", space: "Patio al aire libre", resp: "Martina", duration: "5 min", obs: "Intervalo entre las entrevistas." },
+                    { id: 5, time: "18:30", minStart: 1110, minEnd: 1120, title: "Entrevistas a los Autores (Parte 2)", space: "Patio al aire libre", resp: "Leo Filippi c/ Cande Ortiz", duration: "10 min", obs: "Segunda parte, preguntas del público." },
+                    { id: 6, time: "18:40", minStart: 1120, minEnd: 1125, title: "Música: 'Wonderwall'", space: "Patio al aire libre", resp: "1º Año", duration: "5 min", obs: "Cierre musical de la entrevista." },
+                    { id: 7, time: "18:45", minStart: 1125, minEnd: 1155, title: "Teatro: 'El Principito' (1º Función)", space: "SUM", resp: "2º y 3º Año", duration: "10 min", obs: "1º función." },
+                    { id: 8, time: "18:55", minStart: 1135, minEnd: 1140, title: "Baile Martina", space: "Patio al aire libre", resp: "Martina", duration: "5 min", obs: "Intervalo de baile." },
+                    { id: 9, time: "19:00", minStart: 1140, minEnd: 1150, title: "Teatro: 'High School Musical' (1º Función)", space: "SUM", resp: "Equipo de Teatro", duration: "10 min", obs: "1º función." },
+                    { id: 10, time: "19:15", minStart: 1155, minEnd: 1165, title: "Teatro: 'El Principito' (2º Función)", space: "SUM", resp: "2º y 3º Año", duration: "10 min", obs: "2º función." },
+                    { id: 11, time: "19:30", minStart: 1170, minEnd: 1180, title: "Teatro: 'High School Musical' (2º Función)", space: "SUM", resp: "Equipo de Teatro", duration: "10 min", obs: "2º función." },
+                    { id: 12, time: "19:40", minStart: 1180, minEnd: 1185, title: "Baile Martina", space: "Patio al aire libre", resp: "Martina", duration: "5 min", obs: "Intervalo de baile." },
+                    { id: 13, time: "19:45", minStart: 1185, minEnd: 1195, title: "Teatro: 'High School Musical' (3º Función)", space: "SUM", resp: "Equipo de Teatro", duration: "10 min", obs: "3º función." },
+                    { id: 14, time: "19:58", minStart: 1198, minEnd: 1205, title: "Teatro: 'El Principito' (3º Función)", space: "SUM", resp: "2º y 3º Año", duration: "7 min", obs: "3º función." },
+                    { id: 15, time: "20:05", minStart: 1205, minEnd: 1215, title: "Desfile: 'El Precio de Encajar'", space: "SUM", resp: "2º Año", duration: "10 min", obs: "Cierre artístico." },
+                    { id: 16, time: "20:15", minStart: 1215, minEnd: 1240, title: "Cierre", space: "Patio al aire libre", resp: "Todos", duration: "", obs: "Cierre formal del evento y agradecimientos finales." }
+                ],
+
+                aulasData: [
+                    { id: 'a2', space: "Aula 2", title: "Las Voces que nos Habitan", resp: "Prof. Silvia De La Vega y Prof. Laura Giménez", obs: "Instalación o performance." },
+                    { id: 'a3', space: "Aula 3", title: "Arte en Vivo: Cubismo", resp: "Prof. Cecilia Villegas", obs: "Artista pintando en vivo." },
+                    { id: 'a4', space: "Aula 4", title: "Jarrones y Cuadros", resp: "Prof. Cecilia Villegas", obs: "Exposición de artes visuales (3º B)." },
+                    { id: 'a5', space: "Aula 5", title: "Sala de Escape: 'Les Catacombes de Paris'", resp: "Prof. Cecilia Villegas y Prof. Ludmila Roncallo", obs: "Experiencia inmersiva de terror psicológico (4º Año). Grupos reducidos." },
+                    { id: 'ainf', space: "Aula de Informática", title: "Proyecto: Terror Psicológico", resp: "Prof. Cecilia Villegas y Prof. Ludmila Roncallo", obs: "Proyección o instalación digital." },
+                    { id: 'a6', space: "Aula 6", title: "Presentación PYMES", resp: "Candela Márquez", obs: "Stand de emprendimientos (5º Año)." },
+                    { id: 'cafe', space: "Espacio del Café", title: "Servicio de Café y Buffet", resp: "Prof. Paola Spörle, Milca González, Oriana Contreras e Ivana", obs: "Café, té, comida dulce y salada + actividades informales." },
+                    { id: 'flores', space: "Stand de Flores", title: "Stand de Flores", resp: "1º Año - Prof. Rocío Rodríguez y Carolina Rosales", obs: "Stand de flores." }
+                ],
+
+                initApp() {
+                    this.checkEventDate();
+                    this.clockInterval = setInterval(() => {
+                        this.checkEventDate();
+                    }, 1000);
+                    this.$nextTick(() => { lucide.createIcons(); });
+                },
+
+                checkEventDate() {
+                    const now = new Date();
+                    // Fecha objetivo: Viernes 30 de Octubre de 2026 a las 18:00 hs
+                    const eventDate = new Date(2026, 9, 30, 18, 0, 0); // Mes 9 = Octubre (0-indexed)
+                    
+                    const diffTime = eventDate - now;
+
+                    if (diffTime > 0 && !this.simulatingLive) {
+                        this.isBeforeEvent = true;
+                        // Calcular días, horas, minutos y segundos restantes
+                        const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60 * 60 / 60));
+                        const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+                        
+                        this.countdownText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                        this.currentMinutes = 0; // Fuera de rango para evitar mostrar "En vivo" antes de tiempo
+                    } else {
+                        this.isBeforeEvent = false;
+                        this.currentMinutes = now.getHours() * 60 + now.getMinutes();
+                    }
+                },
+
+                toggleSimulationMode() {
+                    this.simulatingLive = !this.simulatingLive;
+                    if (!this.simulatingLive) {
+                        this.checkEventDate();
+                    }
+                },
+
+                get currentTimeFormatted() {
+                    const now = new Date();
+                    const hrs = now.getHours().toString().padStart(2, '0');
+                    const mins = now.getMinutes().toString().padStart(2, '0');
+                    return `${hrs}:${mins}`;
+                },
+
+                get currentActivity() {
+                    if (this.isBeforeEvent && !this.simulatingLive) return null;
+                    return this.escenarioData.find(item => 
+                        this.currentMinutes >= item.minStart && this.currentMinutes < item.minEnd
+                    ) || null;
+                },
+
+                get nextActivity() {
+                    if (this.isBeforeEvent && !this.simulatingLive) return this.escenarioData[0]; // Muestra la primera actividad como próxima
+                    return this.escenarioData.find(item => item.minStart > this.currentMinutes) || null;
+                },
+
+                isCurrent(item) {
+                    if (this.isBeforeEvent && !this.simulatingLive) return false;
+                    return this.currentMinutes >= item.minStart && this.currentMinutes < item.minEnd;
+                },
+
+                isPast(item) {
+                    if (this.isBeforeEvent && !this.simulatingLive) return false;
+                    return this.currentMinutes >= item.minEnd;
+                },
+
+                get filteredEscenario() {
+                    if (!this.searchQuery) return this.escenarioData;
+                    const q = this.searchQuery.toLowerCase();
+                    return this.escenarioData.filter(i => 
+                        i.title.toLowerCase().includes(q) || 
+                        i.space.toLowerCase().includes(q) || 
+                        i.resp.toLowerCase().includes(q)
+                    );
+                },
+
+                get filteredAulas() {
+                    if (!this.searchQuery) return this.aulasData;
+                    const q = this.searchQuery.toLowerCase();
+                    return this.aulasData.filter(i => 
+                        i.title.toLowerCase().includes(q) || 
+                        i.space.toLowerCase().includes(q) || 
+                        i.resp.toLowerCase().includes(q) ||
+                        i.obs.toLowerCase().includes(q)
+                    );
+                },
+
+                toggleFavorite(id) {
+                    if (this.isFavorite(id)) {
+                        this.favorites = this.favorites.filter(f => f !== id);
+                    } else {
+                        this.favorites.push(id);
+                    }
+                    localStorage.setItem('starbooks_favs', JSON.stringify(this.favorites));
+                },
+
+                isFavorite(id) {
+                    return this.favorites.includes(id);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
